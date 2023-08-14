@@ -1,0 +1,25 @@
+name: 'Karate Test Runner'
+description: 'Run Karate tests on sanityTest.feature files.'
+inputs:
+  testDir:
+    description: 'Path to the test directory.'
+    required: true
+    default: 'sanityTests'
+  testFilePath:
+    description: 'Path to the test filename.'
+    required: true
+    default: 'SanityTest.feature'
+  karateVersion:
+    description: 'Karate version to use.'
+    required: true
+    default: 'latest'
+  baseUrl:
+    description: 'Base URL to use.'
+    required: true
+  authToken:
+    description: 'Authorization header to use.'
+    required: false
+    default: ''
+runs:
+  using: 'node16'
+  main: 'index.js'
