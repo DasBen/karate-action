@@ -8,7 +8,7 @@ const DEFAULT_TEST_DIR = 'sanityTests';
 const DEFAULT_TEST_FILE = 'SanityTest.feature';
 
 // Regular expression pattern to validate URLs
-const URL_PATTERN = /^(https?):\/\/[^\s/$.?#].[^\s]*$/i;
+const URL_PATTERN = /^(https?):\/\/[^\s/$.?#].[^\S]*$/i;
 
 async function mainFunction() {
   const sanityTestDir = core.getInput('testDir') || DEFAULT_TEST_DIR;
@@ -61,7 +61,7 @@ async function mainFunction() {
     }
 
     core.info(`Output received: ${output.toString()}`);
-    if (!output || !output.toString().includes('failed:  0')) {
+    if (!output?.toString().includes('failed:  0')) {
       core.info("Marking as failed due to missing pass confirmation");
       allPassed = false;
       break;
@@ -77,11 +77,11 @@ if (require.main === module) {
   (async () => {
     try {
       const status = await mainFunction();
+      core.info(`Status: ${status}`);
       core.setOutput('status', status);
     } catch (error) {
+      core.info(`Status: FAILED`)
       core.setFailed(error.message);
     }
   })();
 }
-
-module.exports = { mainFunction };  // For testing purposes
