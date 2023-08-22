@@ -1,3 +1,6 @@
+/.idea/**
+/coverage/**
+
 # Created by https://www.toptal.com/developers/gitignore/api/git,intellij+all,intellij+iml
 # Edit at https://www.toptal.com/developers/gitignore?templates=git,intellij+all,intellij+iml
 
