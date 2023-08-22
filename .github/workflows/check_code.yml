@@ -19,6 +19,6 @@ jobs:
         with:
           comment-title: "Marks in code"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          ignore-pattern: '.md$|^\.github/workflows/'
+          ignore-pattern: '.md$|^\.github/workflows/|^node_modules/'
           review-message: "Please check these entries :eyes:"
           tags:  "TODO,FIXME,BUG,DOCME,DEPRECATED"
