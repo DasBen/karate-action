@@ -28,7 +28,7 @@ describe('GitHub Action Integration Test', () => {
   // test case with valid setup
   it('runs action script without errors', () => {
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('PASSED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -41,7 +41,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script without errors with multiple test files', () => {
     process.env.INPUT_TESTFILEPATH = "SanityTest.feature,SanityTest.feature";
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('PASSED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -54,7 +54,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script with error in test files', () => {
     process.env.INPUT_TESTFILEPATH = "SanityTest.feature,SanityTestBad.feature";
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -67,7 +67,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script with error in test files', () => {
     process.env.INPUT_TESTFILEPATH = "SanityTestBad.feature";
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -80,7 +80,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script with invalid URL and expects failure', () => {
     process.env.INPUT_BASEURL = "https://invalid-url-for-test.xyz";  // Overriding the URL to be invalid
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -93,7 +93,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script with missing base URL and expects failure', () => {
     delete process.env.INPUT_BASEURL;  // Removing the base URL
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -106,7 +106,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script with invalid base URL format and expects failure', () => {
     process.env.INPUT_BASEURL = "invalid-url";  // Invalid URL format
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -119,7 +119,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script with missing test files and expects failure', () => {
     delete process.env.INPUT_TESTFILEPATH;  // Removing the test files
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -132,7 +132,7 @@ describe('GitHub Action Integration Test', () => {
   it('runs action script with missing Karate version and expects failure', () => {
     delete process.env.INPUT_KARATEVERSION;  // Removing the Karate version
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
@@ -152,7 +152,7 @@ describe('GitHub Action Integration Test', () => {
     }
 
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('FAILED');
     } catch (error) {
       console.error('Command failed with:', error.message);
