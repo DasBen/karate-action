@@ -44,33 +44,21 @@ describe('GitHub Action Integration Test', () => {
       const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
       expect(result).toContain('PASSED');
     } catch (error) {
-      console.error('Command failed with:', error.message);
-      console.error('Stderr:', error.stderr?.toString());
+      // console.error('Command failed with:', error.message);
+      // console.error('Stderr:', error.stderr?.toString());
       throw error;  // Re-throwing the error to make the test fail
     }
   }, 30000);
 
   // test case with mixed success and error in feature files
-  // it('runs action script with error in test files', () => {
-  //   process.env.INPUT_TESTFILEPATH = "SanityTest.feature,SanityTestBad.feature";
-  //   try {
-  //     const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
-  //     expect(result).toContain('FAILED');
-  //   } catch (error) {
-  //     console.error('Command failed with:', error.message);
-  //     console.error('Stderr:', error.stderr?.toString());
-  //     throw error;  // Re-throwing the error to make the test fail
-  //   }
-  // }, 30000);
-
   it('runs action script with error in test files', () => {
     process.env.INPUT_TESTFILEPATH = "SanityTest.feature,SanityTestBad.feature";
     try {
-      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env} });
-      console.log('Command result:', result); // Log the result
-      expect(result).toContain('SOME_EXPECTED_STRING'); // Adjust the expected string
+      const result = execSync(`node index.js`, { encoding: 'utf-8', env: {...process.env}, stdio: 'pipe' });
+      expect(result).toContain('FAILED');
     } catch (error) {
-      console.error('Test failed with error:', error); // Log the entire error object
+      console.error('Command failed with:', error.message);
+      console.error('Stderr:', error.stderr?.toString());
       throw error;  // Re-throwing the error to make the test fail
     }
   }, 30000);
