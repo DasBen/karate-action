@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Java
         uses: actions/setup-java@v2
@@ -40,7 +40,7 @@ jobs:
           java-version: '17'
 
       - name: Run Karate tests
-        uses: ./path_to_karate_action_directory
+        uses: DasBen/karate-action@<release-version>
         with:
           karateVersion: '1.4.0'
           baseUrl: 'https://your-api-url.com'
