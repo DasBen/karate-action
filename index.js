@@ -17,8 +17,6 @@ const urlRegex = new RegExp(
   '(\\#[-a-z\\d_]*)?$','i'
 );
 
-
-
 async function mainFunction() {
   const sanityTestDir = core.getInput('testDir') || DEFAULT_TEST_DIR;
   const testFiles = core.getInput('testFilePath') || DEFAULT_TEST_FILE;
@@ -44,7 +42,8 @@ async function mainFunction() {
     core.error(`Base URL not provided`);
   }
   if (!urlRegex.test(baseUrl)) {
-    core.error(`Invalid base URL format`);
+    core.info(`Base URL provided: "${baseUrl}"`);
+    // core.error(`Invalid base URL format`);
   }
 
   core.info(`Running Karate tests in "${sanityTestDir}" using version "${karateVersion}"`);
@@ -90,6 +89,7 @@ if (require.main === module) {
       core.setOutput('status', status);
     } catch (error) {
       core.info(`Status: FAILED`)
+      console.error("Caught Error:", error);
       core.setFailed(error.message);
     }
   })();
