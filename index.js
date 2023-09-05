@@ -38,6 +38,7 @@ async function mainFunction() {
     core.error(`Karate version not provided`);
   }
 
+  core.info(`Base URL provided: "${baseUrl}"`);
   if (!baseUrl) {
     core.error(`Base URL not provided`);
   }
@@ -89,7 +90,7 @@ if (require.main === module) {
       core.setOutput('status', status);
     } catch (error) {
       core.info(`Status: FAILED`)
-      console.error("Caught Error:", error);
+      core.error("Caught Error:", error);
       core.setFailed(error.message);
     }
   })();
