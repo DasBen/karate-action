@@ -38,13 +38,11 @@ async function mainFunction() {
     core.error(`Karate version not provided`);
   }
 
-  core.info(`Base URL provided: "${baseUrl}"`);
   if (!baseUrl) {
     core.error(`Base URL not provided`);
   }
   if (!urlRegex.test(baseUrl)) {
-    core.info(`Base URL provided: "${baseUrl}"`);
-    // core.error(`Invalid base URL format`);
+    core.error(`Invalid base URL format`);
   }
 
   core.info(`Running Karate tests in "${sanityTestDir}" using version "${karateVersion}"`);
@@ -62,9 +60,10 @@ async function mainFunction() {
     const cmd = `java -DbaseUrl=${baseUrl} -DAuthorization=${authToken} -jar ${jarPath} ${testFile}`;
     let output;
     try {
-      output = execSync(cmd, { encoding: 'utf-8', cwd: sanityTestDir });
+      output = execSync(cmd, { encoding: 'utf-8', cwd: sanityTestDir, maxBuffer: 1024 * 1024 });
     } catch (error) {
       core.error(`Error executing command "${cmd}": ${error.message}`);
+      core.error(`Stderr: ${error.stderr.toString()}`); // Log the stderr explicitly
       allPassed = false;
       break;
     }
@@ -88,10 +87,15 @@ if (require.main === module) {
       const status = await mainFunction();
       core.info(`Status: ${status}`);
       core.setOutput('status', status);
+      if (status === 'FAILED') {
+        core.setFailed('Tests failed');
+        process.exit(1); // Exit with non-zero exit code to fail the GitHub Action
+      }
     } catch (error) {
       core.info(`Status: FAILED`)
       core.error("Caught Error:", error);
       core.setFailed(error.message);
+      process.exit(1); // Exit with non-zero exit code to fail the GitHub Action
     }
   })();
 }
