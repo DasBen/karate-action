@@ -10,6 +10,8 @@ const DEFAULT_TEST_FILE = 'SanityTest.feature';
 // Regular expression pattern to validate URLs
 const URL_PATTERN = /^(https?):\/\/[^\s/$.?#].[^\S]*$/i;
 
+
+
 async function mainFunction() {
   const sanityTestDir = core.getInput('testDir') || DEFAULT_TEST_DIR;
   const testFiles = core.getInput('testFilePath') || DEFAULT_TEST_FILE;
