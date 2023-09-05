@@ -17,6 +17,8 @@ const urlRegex = new RegExp(
   '(\\#[-a-z\\d_]*)?$','i'
 );
 
+
+
 async function mainFunction() {
   const sanityTestDir = core.getInput('testDir') || DEFAULT_TEST_DIR;
   const testFiles = core.getInput('testFilePath') || DEFAULT_TEST_FILE;
