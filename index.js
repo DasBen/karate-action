@@ -8,14 +8,7 @@ const DEFAULT_TEST_DIR = 'sanityTests';
 const DEFAULT_TEST_FILE = 'SanityTest.feature';
 
 // Regular expression pattern to validate URLs
-const urlRegex = new RegExp(
-  '^(https?:\\/\\/)' + // protocol
-  '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-  '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-  '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-  '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-  '(\\#[-a-z\\d_]*)?$','i'
-);
+const URL_PATTERN = /^(https?):\/\/[^\s/$.?#].[^\S]*$/i;
 
 async function mainFunction() {
   const sanityTestDir = core.getInput('testDir') || DEFAULT_TEST_DIR;
@@ -41,7 +34,7 @@ async function mainFunction() {
   if (!baseUrl) {
     core.error(`Base URL not provided`);
   }
-  if (!urlRegex.test(baseUrl)) {
+  if (!URL_PATTERN.test(baseUrl)) {
     core.error(`Invalid base URL format`);
   }
 
