@@ -2,7 +2,7 @@
 const core = require('@actions/core');
 const { downloadKarateJar } = require('./utils');
 const fs = require('fs');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
 const DEFAULT_TEST_DIR = 'sanityTests';
 const DEFAULT_TEST_FILE = 'SanityTest.feature';
@@ -57,24 +57,32 @@ async function mainFunction() {
   let allPassed = true;
 
   for (const testFile of testFiles.split(',')) {
-    const cmd = `java -DbaseUrl=${baseUrl} -DAuthorization=${authToken} -jar ${jarPath} ${testFile}`;
-    let output;
-    try {
-      output = execSync(cmd, { encoding: 'utf-8', cwd: sanityTestDir, maxBuffer: 1024 * 1024 });
-    } catch (error) {
-      core.error(`Error executing command "${cmd}": ${error.message}`);
-      core.error(`Stderr: ${error.stderr.toString()}`); // Log the stderr explicitly
+    const cmd = `java`;
+    const args = [`-DbaseUrl=${baseUrl}`, `-DAuthorization=${authToken}`, `-jar`, `${jarPath}`, `${testFile}`];
+
+    const options = {
+      encoding: 'utf-8',
+      cwd: sanityTestDir,
+      maxBuffer: 1024 * 1024,
+    };
+
+    const result = spawnSync(cmd, args, options);
+
+    if (result.status !== 0) {
+      core.error(`Error executing command: ${cmd} ${args.join(' ')}`);
+      core.error(`Stderr: ${result.stderr.toString()}`);
       allPassed = false;
       break;
     }
 
-    core.info(`Output received: ${output.toString()}`);
-    if (!output?.toString().includes('failed:  0')) {
+    const output = result.stdout.toString();
+    core.info(`Output received: ${output}`);
+
+    if (!output.includes('failed:  0')) {
       core.info("Marking as failed due to missing pass confirmation");
       allPassed = false;
       break;
     }
-
   }
 
   return allPassed ? 'PASSED' : 'FAILED';

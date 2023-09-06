@@ -1,6 +1,4 @@
 function fn() {
-    console.log('Reading karate.properties: ' + JSON.stringify(karate.properties));
-
     const config = {
         baseUrl: karate.properties['baseUrl'] || 'http://localhost:8080',
         authorization: karate.properties['Authorization']
