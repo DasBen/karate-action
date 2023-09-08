@@ -71,6 +71,7 @@ const generateTestSummary = async (baseDir) => {
     const allFeatures = summaryData.featureSummary.map((feature) => {
       return {
         feature: feature.relativePath,
+        packageQualifiedName: feature.packageQualifiedName,
         name: feature.name,
         durationMillis: feature.durationMillis,
         passedCount: feature.passedCount,
@@ -79,6 +80,7 @@ const generateTestSummary = async (baseDir) => {
     });
 
     core.summary.addHeading('Test Results');
+    // @todo debugging code
     core.summary.addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
 
     for (const feature of allFeatures) {
