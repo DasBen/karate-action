@@ -71,17 +71,8 @@ async function mainFunction() {
   const result = spawnSync(cmd, args, options);
   const output = result.stdout.toString();
 
-  // CMD throws Error
-  if (result.status !== 0) {
-    core.error(`Error executing command: ${cmd} ${args.join(' ')}`);
-    core.error(`Stderr: ${result.stderr.toString()}`);
-    core.info(`Output received: ${output}`);
-    allPassed = false;
-  }
-
-  // Tests are failing
-  if (!output.includes('failed:  0')) {
-    core.error('Marking as failed due to missing pass confirmation');
+  // CMD throws Error or Tests are failing
+  if (result.status !== 0 || !output.includes('failed:  0')) {
     core.info(`Output received: ${output}`);
     allPassed = false;
   }

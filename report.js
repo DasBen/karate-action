@@ -4,19 +4,41 @@ const fs = require('fs').promises;
 const path = require('path');
 const core = require('@actions/core');
 
-const generateFeatureTable = (feature) => {
+const generateFeatureTable = (feature, errorDetails) => {
   const statusIcon = feature.failedCount > 0 ? '❌' : '✅';
+  const errors = errorDetails.map((error) => `Scenario: ${error.name}, Error: ${error.error}`).join('; ');
+
   return [
     { data: feature.name },
     { data: feature.durationMillis.toString() },
     { data: feature.passedCount.toString() },
     { data: feature.failedCount.toString() },
     { data: statusIcon },
+    { data: errors },
   ];
 };
 
-const convertFeatureTableToMarkdown = (featureTableArray) => {
-  return '| ' + featureTableArray.map(cell => cell.data).join(' | ') + ' |';
+const getScenarioErrorDetails = async (qualifiedName, baseDir) => {
+  const detailedReportPath = path.join(
+    baseDir,
+    'target',
+    'karate-reports',
+    `${qualifiedName}.karate-json.txt`
+  );
+
+  try {
+    const detailedContent = await fs.readFile(detailedReportPath, 'utf-8');
+    const detailedData = JSON.parse(detailedContent);
+    return detailedData.scenarioResults
+      .filter((result) => result.failed)
+      .map((result) => ({
+        name: result.name,
+        error: result.error,
+      }));
+  } catch (e) {
+    core.error(`Error reading detailed report for ${qualifiedName}: ${e}`);
+    return [];
+  }
 };
 
 const generateTestSummary = async (baseDir) => {
@@ -56,36 +78,29 @@ const generateTestSummary = async (baseDir) => {
       };
     });
 
-    if (process.env.GITHUB_ACTIONS) {
-      core.summary.addHeading('Test Results');
-      core.summary.addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
+    core.summary.addHeading('Test Results');
+    core.summary.addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
 
-      allFeatures.forEach((feature) => {
-        const featureTable = generateFeatureTable(feature);
-        core.summary
-          .addHeading(`${feature.feature}.feature`)
-          .addTable([
-            [
-              { data: 'Feature Name', header: true },
-              { data: 'Duration (ms)', header: true },
-              { data: 'Passed', header: true },
-              { data: 'Failed', header: true },
-              { data: 'Status', header: true },
-            ],
-            featureTable,
-          ]);
-      });
+    for (const feature of allFeatures) {
+      const errorDetails = await getScenarioErrorDetails(feature.packageQualifiedName, baseDir);
+      const featureTable = generateFeatureTable(feature, errorDetails);
 
-      await core.summary.write();
-    } else {
-      const tableHeader = `| Feature Name | Duration (ms) | Passed | Failed | Status |`;
-      const tableDivider = `| --- | --- | --- | --- | --- |`;
-      const tableString = allFeatures.map((feature) => {
-        const featureTable = generateFeatureTable(feature);
-        return convertFeatureTableToMarkdown(featureTable);
-      }).join('\n');
-      core.info(`Test Results:\n${tableHeader}\n${tableDivider}\n${tableString}`);
+      core.summary
+        .addHeading(`${feature.feature}`)
+        .addTable([
+          [
+            { data: 'Feature Name', header: true },
+            { data: 'Duration (ms)', header: true },
+            { data: 'Passed', header: true },
+            { data: 'Failed', header: true },
+            { data: 'Status', header: true },
+            { data: 'Error', header: true },
+          ],
+          featureTable,
+        ]);
     }
+
+    await core.summary.write();
   } catch (error) {
     core.error(`Error generating test summary: ${error}`);
     throw error;
