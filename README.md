@@ -56,7 +56,7 @@ jobs:
 | `karateVersion` | The version of Karate standalone JAR to use. | Yes      | Must be provided      |
 | `baseUrl`       | The base URL for your tests.                 | Yes      | http://localhost:8080 |
 | `testDir`       | Path to your test directory.                 | Yes      | Must be provided      |
-| `testFilePath`  | List of `.feature` files.                    | Yes      | Must be provided      |
+| `testFilePath`  | Comma separated List of `.feature` files.    | Yes      | Must be provided      |
 | `authToken`     | Authorization header value if needed.        | No       | null                  |
 
 ```
