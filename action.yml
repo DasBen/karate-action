@@ -6,9 +6,9 @@ inputs:
     required: true
     default: 'sanityTests'
   testFilePath:
-    description: 'Path to the test filename.'
+    description: 'Path to the test filenames.'
     required: true
-    default: 'SanityTest.feature'
+    default: 'SanityTest.feature,AnotherSanityTest.feature'
   karateVersion:
     description: 'Karate version to use.'
     required: true
