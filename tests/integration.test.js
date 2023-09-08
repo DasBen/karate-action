@@ -1,16 +1,31 @@
 // tests/integration.test.js
 const { execSync } = require('child_process');
+const fs = require('fs').promises;
+const path = require('path');
+
+let tmpFilePath;
 
 describe('GitHub Action Integration Test', () => {
 
   // Set up valid environment variables for the tests
-  beforeAll(() => {
+  beforeAll(async () => {
     process.env.INPUT_TESTDIR = 'sanityTests';
     process.env.INPUT_TESTFILEPATH = 'SanityTest.feature';
     process.env.INPUT_KARATEVERSION = '1.4.0';
     process.env.INPUT_BASEURL = 'https://httpstat.us';
     process.env.INPUT_AUTHORIZATION = 'token123';
     process.env.GITHUB_WORKSPACE = process.cwd();
+
+    // Ensure the .tmp directory exists
+    const tmpDirPath = path.join(process.env.GITHUB_WORKSPACE, '.tmp');
+    await fs.mkdir(tmpDirPath, { recursive: true });
+
+    // Create a temporary file
+    tmpFilePath = path.join(tmpDirPath, 'workspace.txt');
+    await fs.writeFile(tmpFilePath, 'Temporary file content');
+
+    // Set the env variable that will read from this tmp file
+    process.env.GITHUB_STEP_SUMMARY = tmpFilePath;
   });
 
   // Clean up after tests

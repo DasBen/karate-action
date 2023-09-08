@@ -114,6 +114,7 @@ describe('generateTestSummary', () => {
     core.error.mockClear();
     fs.access.mockRejectedValue(new Error('File not found'));
     await generateTestSummary('baseDir');
-    expect(core.error).toHaveBeenCalledWith('Summary file baseDir\\target\\karate-reports\\karate-summary-json.txt does not exist.');
+    const expectedPath = path.normalize('baseDir/target/karate-reports/karate-summary-json.txt');
+    expect(core.error).toHaveBeenCalledWith(`Summary file ${expectedPath} does not exist.`);
   });
 });

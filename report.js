@@ -24,7 +24,7 @@ const getScenarioErrorDetails = async (qualifiedName, baseDir) => {
     baseDir,
     'target',
     'karate-reports',
-    `${qualifiedName}.karate-json.txt`
+    `${qualifiedName}.karate-json.txt`,
   );
 
   try {
@@ -50,7 +50,8 @@ const generateTestSummary = async (baseDir) => {
     try {
       await fs.access(summaryFilePath);
     } catch (e) {
-      core.error(`Summary file ${summaryFilePath} does not exist.`);
+      const normalizedPath = path.normalize('baseDir/target/karate-reports/karate-summary-json.txt');
+      core.error(`Summary file ${normalizedPath} does not exist.`);
       return;
     }
 
