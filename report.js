@@ -48,7 +48,8 @@ const generateTestSummary = async (baseDir) => {
 
     const allFeatures = summaryData.featureSummary.map((feature) => {
       return {
-        name: feature.packageQualifiedName,
+        feature: feature.relativePath,
+        name: feature.name,
         durationMillis: feature.durationMillis,
         passedCount: feature.passedCount,
         failedCount: feature.failedCount,
@@ -56,12 +57,13 @@ const generateTestSummary = async (baseDir) => {
     });
 
     if (process.env.GITHUB_ACTIONS) {
-      core.summary.addHeading('Test Results').addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
+      core.summary.addHeading('Test Results');
+      core.summary.addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
 
       allFeatures.forEach((feature) => {
         const featureTable = generateFeatureTable(feature);
         core.summary
-          .addHeading(`${feature.packageQualifiedName}.feature`)
+          .addHeading(`${feature.feature}.feature`)
           .addTable([
             [
               { data: 'Feature Name', header: true },
