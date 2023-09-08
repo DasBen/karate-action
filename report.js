@@ -15,6 +15,10 @@ const generateFeatureTable = (feature) => {
   ];
 };
 
+const convertFeatureTableToMarkdown = (featureTableArray) => {
+  return '| ' + featureTableArray.map(cell => cell.data).join(' | ') + ' |';
+};
+
 const generateTestSummary = async (baseDir) => {
   try {
     const summaryFilePath = path.join(baseDir, 'target', 'karate-reports', 'karate-summary-json.txt');
@@ -72,7 +76,12 @@ const generateTestSummary = async (baseDir) => {
 
       await core.summary.write();
     } else {
-      const tableString = allFeatures.map((feature) => generateFeatureTable(feature)).join('\n');
+      const tableHeader = `| Feature Name | Duration (ms) | Passed | Failed | Status |`;
+      const tableDivider = `| --- | --- | --- | --- | --- |`;
+      const tableString = allFeatures.map((feature) => {
+        const featureTable = generateFeatureTable(feature);
+        return convertFeatureTableToMarkdown(featureTable);
+      }).join('\n');
       core.info(`Test Results:\n${tableHeader}\n${tableDivider}\n${tableString}`);
     }
   } catch (error) {
