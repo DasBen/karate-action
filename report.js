@@ -9,6 +9,7 @@ const generateFeatureTable = (feature, errorDetails) => {
   const errors = errorDetails.map((error) => `Scenario: ${error.name}, Error: ${error.error}`).join('; ');
 
   return [
+    { data: feature.feature },
     { data: feature.name },
     { data: feature.durationMillis.toString() },
     { data: feature.passedCount.toString() },
@@ -79,28 +80,31 @@ const generateTestSummary = async (baseDir) => {
       };
     });
 
-    core.summary.addHeading('Test Results');
-    // @todo debugging code
-    core.summary.addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
+    // Initialize an array to store all the feature tables
+    const allFeatureTables = [];
 
+    core.summary.addHeading('Sanity Test Results');
+
+    // Collect all the feature tables
     for (const feature of allFeatures) {
       const errorDetails = await getScenarioErrorDetails(feature.packageQualifiedName, baseDir);
       const featureTable = generateFeatureTable(feature, errorDetails);
-
-      core.summary
-        .addHeading(`${feature.feature}`)
-        .addTable([
-          [
-            { data: 'Feature Name', header: true },
-            { data: 'Duration (ms)', header: true },
-            { data: 'Passed', header: true },
-            { data: 'Failed', header: true },
-            { data: 'Status', header: true },
-            { data: 'Error', header: true },
-          ],
-          featureTable,
-        ]);
+      allFeatureTables.push(featureTable);
     }
+
+    // Add the final table with all the feature tables
+    core.summary.addTable([
+      [
+        { data: 'Feature Name', header: true },
+        { data: 'Scenario Name', header: true },
+        { data: 'Duration (ms)', header: true },
+        { data: 'Passed', header: true },
+        { data: 'Failed', header: true },
+        { data: 'Status', header: true },
+        { data: 'Error', header: true },
+      ],
+      ...allFeatureTables,
+    ]);
 
     await core.summary.write();
   } catch (error) {
