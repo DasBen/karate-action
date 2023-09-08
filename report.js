@@ -4,6 +4,17 @@ const fs = require('fs').promises;
 const path = require('path');
 const core = require('@actions/core');
 
+const generateFeatureTable = (feature) => {
+  const statusIcon = feature.failedCount > 0 ? '❌' : '✅';
+  return [
+    { data: feature.name },
+    { data: feature.durationMillis.toString() },
+    { data: feature.passedCount.toString() },
+    { data: feature.failedCount.toString() },
+    { data: statusIcon },
+  ];
+};
+
 const generateTestSummary = async (baseDir) => {
   try {
     const summaryFilePath = path.join(baseDir, 'target', 'karate-reports', 'karate-summary-json.txt');
@@ -27,7 +38,7 @@ const generateTestSummary = async (baseDir) => {
 
     // Validate if featureSummary exists and is an array
     if (!Array.isArray(summaryData.featureSummary)) {
-      core.error("featureSummary is not an array or not found in the summary data.");
+      core.error('featureSummary is not an array or not found in the summary data.');
       return;
     }
 
@@ -36,24 +47,27 @@ const generateTestSummary = async (baseDir) => {
         name: feature.packageQualifiedName,
         durationMillis: feature.durationMillis,
         passedCount: feature.passedCount,
-        failedCount: feature.failedCount
+        failedCount: feature.failedCount,
       };
     });
 
-    const generateFeatureTable = (feature) => {
-      const statusIcon = feature.failedCount > 0 ? '❌' : '✅';
-      return `| ${feature.name} | ${feature.durationMillis} | ${feature.passedCount} | ${feature.failedCount} | ${statusIcon} |`;
-    };
-
-    const tableHeader = `| Feature Name | Duration (ms) | Passed | Failed | Status |`;
-    const tableDivider = `| --- | --- | --- | --- | --- |`;
     if (process.env.GITHUB_ACTIONS) {
-      core.summary
-        .addHeading('Test Results')
-        .addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
+      core.summary.addHeading('Test Results').addCodeBlock(JSON.stringify(summaryData, null, 2), 'json');
 
       allFeatures.forEach((feature) => {
-        core.summary.addMarkdown(`${feature.packageQualifiedName}.feature\n${tableHeader}\n${tableDivider}\n${generateFeatureTable(feature)}`);
+        const featureTable = generateFeatureTable(feature);
+        core.summary
+          .addHeading(`${feature.packageQualifiedName}.feature`)
+          .addTable([
+            [
+              { data: 'Feature Name', header: true },
+              { data: 'Duration (ms)', header: true },
+              { data: 'Passed', header: true },
+              { data: 'Failed', header: true },
+              { data: 'Status', header: true },
+            ],
+            featureTable,
+          ]);
       });
 
       await core.summary.write();
@@ -61,11 +75,10 @@ const generateTestSummary = async (baseDir) => {
       const tableString = allFeatures.map((feature) => generateFeatureTable(feature)).join('\n');
       core.info(`Test Results:\n${tableHeader}\n${tableDivider}\n${tableString}`);
     }
-
   } catch (error) {
     core.error(`Error generating test summary: ${error}`);
     throw error;
   }
 };
 
-module.exports = { generateTestSummary };
+module.exports = { generateTestSummary, generateFeatureTable };
