@@ -113,4 +113,4 @@ const generateTestSummary = async (baseDir) => {
   }
 };
 
-module.exports = { generateTestSummary, generateFeatureTable };
+module.exports = { generateTestSummary, generateFeatureTable, getScenarioErrorDetails };

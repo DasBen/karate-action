@@ -1,8 +1,7 @@
-// test-report.js
-const fs = require('fs');
-const path = require('path');
+const { generateFeatureTable, generateTestSummary, getScenarioErrorDetails } = require('../report');
+const fs = require('fs').promises;
 const core = require('@actions/core');
-const { generateTestSummary } = require('../report');
+const path = require('path');
 
 jest.mock('fs', () => ({
   promises: {
@@ -11,87 +10,110 @@ jest.mock('fs', () => ({
   },
 }));
 
-jest.mock('@actions/core', () => ({
-  info: jest.fn(),
-  error: jest.fn(),
-  summary: {
-    addHeading: jest.fn().mockReturnThis(),
-    addCodeBlock: jest.fn().mockReturnThis(),
-    addMarkdown: jest.fn().mockReturnThis(),
-    write: jest.fn().mockReturnThis(),
-  },
-}));
+jest.mock('@actions/core');
 
-beforeEach(() => {
-  jest.clearAllMocks();
+describe('generateFeatureTable', () => {
+  it('should generate a feature table with failure', () => {
+    const feature = {
+      feature: 'Feature 1',
+      name: 'Scenario 1',
+      durationMillis: 1000,
+      passedCount: 0,
+      failedCount: 1,
+    };
+    const errorDetails = [
+      {
+        name: 'Test Scenario',
+        error: 'Sample Error',
+      },
+    ];
+    const result = generateFeatureTable(feature, errorDetails);
+    expect(result[0].data).toBe('Feature 1');
+    expect(result[1].data).toBe('Scenario 1');
+    expect(result[2].data).toBe('1000');
+    expect(result[3].data).toBe('0');
+    expect(result[4].data).toBe('1');
+    expect(result[5].data).toBe('❌');
+    expect(result[6].data).toBe('Scenario: Test Scenario, Error: Sample Error');
+  });
+
+  it('should generate a feature table without failure', () => {
+    const feature = {
+      feature: 'Feature 1',
+      name: 'Scenario 1',
+      durationMillis: 1000,
+      passedCount: 1,
+      failedCount: 0,
+    };
+    const errorDetails = [];
+    const result = generateFeatureTable(feature, errorDetails);
+    expect(result[5].data).toBe('✅');
+    expect(result[6].data).toBe('');
+  });
+});
+
+describe('getScenarioErrorDetails', () => {
+  it('should read file and return error details', async () => {
+    const mockData = {
+      scenarioResults: [
+        {
+          name: 'Scenario 1',
+          error: 'Error 1',
+          failed: true,
+        },
+      ],
+    };
+    fs.readFile.mockResolvedValue(JSON.stringify(mockData));
+    const result = await getScenarioErrorDetails('qualifiedName', 'baseDir');
+    expect(result).toEqual([
+      {
+        name: 'Scenario 1',
+        error: 'Error 1',
+      },
+    ]);
+  });
+
+  it('should handle errors gracefully', async () => {
+    fs.readFile.mockRejectedValue(new Error('File not found'));
+    core.error.mockClear();
+    const result = await getScenarioErrorDetails('qualifiedName', 'baseDir');
+    expect(core.error).toHaveBeenCalledWith('Error reading detailed report for qualifiedName: Error: File not found');
+    expect(result).toEqual([]);
+  });
 });
 
 describe('generateTestSummary', () => {
-
-  it('reads the summary JSON and generates a markdown summary or core.info', async () => {
-    // Similar to your existing test but adapted for new changes
-    const fakeData = {
+  it('should generate a summary report successfully', async () => {
+    const mockSummary = {
       featureSummary: [
         {
-          packageQualifiedName: 'Feature 1',
+          relativePath: 'path/to/feature',
+          packageQualifiedName: 'qualified.name',
+          name: 'Feature 1',
           durationMillis: 1000,
           passedCount: 1,
           failedCount: 0,
         },
-        {
-          packageQualifiedName: 'Feature 2',
-          durationMillis: 1500,
-          passedCount: 0,
-          failedCount: 1,
-        },
       ],
     };
+    fs.access.mockResolvedValue(undefined);
+    fs.readFile.mockResolvedValue(JSON.stringify(mockSummary));
+    core.summary = {
+      addHeading: jest.fn(),
+      addTable: jest.fn(),
+      write: jest.fn(),
+    };
 
-    fs.promises.readFile.mockResolvedValue(JSON.stringify(fakeData));
-
-    await generateTestSummary('sanityTest');
-
-    if (process.env.GITHUB_ACTIONS) {
-      expect(core.summary.addHeading).toHaveBeenCalledWith('Test Results');
-      expect(core.summary.addCodeBlock).toHaveBeenCalledWith(JSON.stringify(fakeData, null, 2), 'json');
-    } else {
-      expect(core.info).toHaveBeenCalled();
-    }
+    await generateTestSummary('baseDir');
+    expect(core.summary.addHeading).toHaveBeenCalledWith('Sanity Test Results');
+    expect(core.summary.addTable).toHaveBeenCalled();
+    expect(core.summary.write).toHaveBeenCalled();
   });
 
-});
-
-describe('generateTestSummary with Errors', () => {
-  it('handles no content in summary file gracefully', async () => {
-    const mockBaseDir = '/mock/base/dir';
-
-    // Mock the file as existing
-    fs.promises.access.mockResolvedValue();
-
-    // Mock the file as empty but still JSON-formatted
-    fs.promises.readFile.mockResolvedValue(JSON.stringify({ featureSummary: [] }));
-
-    await generateTestSummary(mockBaseDir);
-
-    expect(core.error).not.toHaveBeenCalled();
+  it('should handle exceptions and errors', async () => {
+    core.error.mockClear();
+    fs.access.mockRejectedValue(new Error('File not found'));
+    await generateTestSummary('baseDir');
+    expect(core.error).toHaveBeenCalledWith('Summary file baseDir\\target\\karate-reports\\karate-summary-json.txt does not exist.');
   });
-
-  it('handles featureSummary not being an array', async () => {
-    const mockBaseDir = '/mock/base/dir';
-    fs.promises.readFile.mockResolvedValue(JSON.stringify({ featureSummary: 'notAnArray' }));
-    await generateTestSummary(mockBaseDir);
-    expect(core.error).toHaveBeenCalledWith('featureSummary is not an array or not found in the summary data.');
-  });
-
-  it('handles invalid summary file path gracefully', async () => {
-    const mockBaseDir = '/invalid/base/dir';
-
-    // Mock the file as not existing
-    fs.promises.access.mockRejectedValue(new Error('File not found'));
-
-    await generateTestSummary(mockBaseDir);
-
-    expect(core.error).toHaveBeenCalledWith(`Summary file ${path.join(mockBaseDir, 'target', 'karate-reports', 'karate-summary-json.txt')} does not exist.`);
-  });
-
 });
