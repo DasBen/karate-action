@@ -20,6 +20,10 @@ inputs:
     description: 'Authorization header to use.'
     required: false
     default: ''
+  tags:
+    description: 'Test-Tags to run.'
+    required: false
+    default: ''
 runs:
   using: 'node16'
   main: 'index.js'

@@ -13,11 +13,11 @@ jobs:
       matrix:
         node-version: [16.x]
         java-distro: ['zulu']
-        java-version: [11,17]
+        java-version: [17]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
