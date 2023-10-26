@@ -8,6 +8,8 @@ export INPUT_TESTFILEPATH="SanityTest.feature"
 export INPUT_KARATEVERSION="1.4.0"
 export INPUT_BASEURL="https://httpstat.us"
 export INPUT_AUTHORIZATION='token123'
+export INPUT_TAGS=''
+export RUN_ENV="local"
 
 # Mock GitHub Workspace environment variable if needed
 export GITHUB_WORKSPACE=$(pwd)

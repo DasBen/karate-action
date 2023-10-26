@@ -14,6 +14,7 @@ describe('GitHub Action Integration Test', () => {
     process.env.INPUT_KARATEVERSION = '1.4.0';
     process.env.INPUT_BASEURL = 'https://httpstat.us';
     process.env.INPUT_AUTHORIZATION = 'token123';
+    process.env.TAGS = '';
     process.env.GITHUB_WORKSPACE = process.cwd();
 
     // Ensure the .tmp directory exists
@@ -36,6 +37,7 @@ describe('GitHub Action Integration Test', () => {
     delete process.env.INPUT_BASEURL;
     delete process.env.INPUT_AUTHORIZATION;
     delete process.env.GITHUB_WORKSPACE;
+    delete process.env.TAGS;
   });
 
   const runActionAndExpectSuccess = (env) => {
@@ -60,61 +62,93 @@ describe('GitHub Action Integration Test', () => {
     expect(thrownError?.stdout?.toString()).toContain('Status: FAILED');
   }
 
-  // Positive Tests
-  it('runs action script without errors', () => {
-    runActionAndExpectSuccess({ ...process.env });
-  }, 30000);
+  describe('Running action script with various configurations', () => {
 
-  it('runs action script without errors with multiple test files', () => {
-    runActionAndExpectSuccess({ ...process.env, INPUT_TESTFILEPATH: 'SanityTest.feature,SanityTest.feature' });
-  }, 30000);
+    it('runs action script without errors', () => {
+      runActionAndExpectSuccess({ ...process.env });
+    }, 30000);
 
-  it('runs action script with missing base URL and expects success', () => {
-    const { INPUT_BASEURL, ...restEnv } = process.env;
-    runActionAndExpectSuccess(restEnv);
+    it('runs action script without errors with multiple test files', () => {
+      runActionAndExpectSuccess({ ...process.env, INPUT_TESTFILEPATH: 'SanityTest.feature,SanityTest.feature' });
+    }, 30000);
+
+    it('runs action script with missing base URL and expects success', () => {
+      const { INPUT_BASEURL, ...restEnv } = process.env;
+      runActionAndExpectSuccess(restEnv);
+    });
+
+    it('runs action script with missing test files and expects success', () => {
+      const { INPUT_TESTFILEPATH, ...restEnv } = process.env;
+      runActionAndExpectSuccess(restEnv);
+    });
+
+    it('runs action script with missing Karate version and expects success', () => {
+      const { INPUT_KARATEVERSION, ...restEnv } = process.env;
+      runActionAndExpectSuccess(restEnv);
+    });
+
+    it('runs action script with invalid test files and expects success', () => {
+      runActionAndExpectSuccess({ ...process.env, INPUT_TESTFILEPATH: 'invalid_file_path' });
+    });
+
   });
 
-  it('runs action script with missing test files and expects success', () => {
-    const { INPUT_TESTFILEPATH, ...restEnv } = process.env;
-    runActionAndExpectSuccess(restEnv);
+  describe('Running action script with tags', () => {
+
+    it('runs action script with tags and expects success', () => {
+      runActionAndExpectSuccess({
+        ...process.env,
+        INPUT_TESTFILEPATH: 'SanityTestTags.feature',
+        INPUT_TAGS: 'success',
+      });
+    });
+
+    it('runs action script with tags and expects error', () => {
+      runActionAndExpectFailure({ ...process.env, INPUT_TESTFILEPATH: 'SanityTestTags.feature', INPUT_TAGS: 'error' });
+    });
+
   });
 
-  it('runs action script with missing Karate version and expects success', () => {
-    const { INPUT_KARATEVERSION, ...restEnv } = process.env;
-    runActionAndExpectSuccess(restEnv);
+  describe('Running action script with erroneous configurations', () => {
+
+    it('runs action script with error in one of multiple test files', () => {
+      runActionAndExpectFailure({ INPUT_TESTFILEPATH: 'SanityTest.feature,SanityTestBad.feature' });
+    }, 30000);
+
+    it('runs action script with error in test files', () => {
+      runActionAndExpectFailure({ INPUT_TESTFILEPATH: 'SanityTestBad.feature' });
+    }, 30000);
+
+    it('runs action script with invalid URL and expects failure', () => {
+      runActionAndExpectFailure({ INPUT_BASEURL: 'https://invalid-url-for-test.xyz' });
+    });
+
+    it('runs action script with invalid base URL format and expects failure', () => {
+      runActionAndExpectFailure({ INPUT_BASEURL: 'invalid-url' });
+    });
+
+    it('runs action script with invalid base URL and expects failure', () => {
+      runActionAndExpectFailure({ INPUT_BASEURL: 'invalid_base_url' });
+    });
+
+    it('runs action script with invalid Karate version and expects failure', () => {
+      runActionAndExpectFailure({ INPUT_KARATEVERSION: 'invalidVersion' });
+    });
+
   });
 
-  // Negative Tests
-  it('runs action script with error in one of multiple test files', () => {
-    runActionAndExpectFailure({ INPUT_TESTFILEPATH: 'SanityTest.feature,SanityTestBad.feature' });
-  }, 30000);
+  describe('Malicious Injection Tests', () => {
 
-  it('runs action script with error in test files', () => {
-    runActionAndExpectFailure({ INPUT_TESTFILEPATH: 'SanityTestBad.feature' });
-  }, 30000);
+    it('handles XSS injection attempt without error', () => {
+      const maliciousInput = "<script>alert('XSS');</script>";
+      runActionAndExpectFailure({ ...process.env, INPUT_TESTFILEPATH: maliciousInput });
+    });
 
-  it('runs action script with invalid URL and expects failure', () => {
-    runActionAndExpectFailure({ INPUT_BASEURL: 'https://invalid-url-for-test.xyz' });
+    it('handles command injection attempt without error', () => {
+      const maliciousInput = "'; rm -rf /; --";
+      runActionAndExpectFailure({ ...process.env, INPUT_TESTFILEPATH: maliciousInput });
+    });
+
   });
-
-  it('runs action script with invalid base URL format and expects failure', () => {
-    runActionAndExpectFailure({ INPUT_BASEURL: 'invalid-url' });
-  });
-
-  it('runs action script with invalid base URL and expects failure', () => {
-    runActionAndExpectFailure({ INPUT_BASEURL: 'invalid_base_url' });
-  });
-
-  it('runs action script with invalid test files and expects failure', () => {
-    runActionAndExpectFailure({ INPUT_TESTFILEPATH: 'invalid_file_path' });
-  });
-
-  it('runs action script with invalid Karate version and expects failure', () => {
-    runActionAndExpectFailure({ INPUT_KARATEVERSION: 'invalidVersion' });
-  });
-
-  it('runs action script with invalid Karate version and expects failure', () => {
-    runActionAndExpectFailure({ INPUT_KARATEVERSION: 'invalidVersion' });
-  }, 30000);
 
 });
