@@ -11,9 +11,9 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x,20.x]
+        node-version: [16.x]
         java-distro: ['zulu']
-        java-version: [11,17]
+        java-version: [17]
 
     steps:
       - name: Checkout code
