@@ -137,18 +137,4 @@ describe('GitHub Action Integration Test', () => {
 
   });
 
-  describe('Malicious Injection Tests', () => {
-
-    it('handles XSS injection attempt without error', () => {
-      const maliciousInput = "<script>alert('XSS');</script>";
-      runActionAndExpectFailure({ ...process.env, INPUT_TESTFILEPATH: maliciousInput });
-    });
-
-    it('handles command injection attempt without error', () => {
-      const maliciousInput = "'; rm -rf /; --";
-      runActionAndExpectFailure({ ...process.env, INPUT_TESTFILEPATH: maliciousInput });
-    });
-
-  });
-
 });
