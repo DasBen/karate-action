@@ -24,6 +24,10 @@ inputs:
     description: 'Test-Tags to run.'
     required: false
     default: ''
+  properties:
+    description: 'JSON list of key/value pairs for additional configuration.'
+    required: false
+    default: ''
 runs:
   using: 'node16'
   main: 'index.js'

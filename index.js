@@ -14,19 +14,24 @@ const JAR_PATH = `karate.jar`;
 
 function getInputs() {
   // Get test directory
-  const sanityTestDir = core.getInput('testDir', { trimWhitespace: true }) || DEFAULT_TEST_DIR;
+  const sanityTestDir =
+    core.getInput('testDir', { trimWhitespace: true }) || DEFAULT_TEST_DIR;
   if (!sanityTestDir || !fs.existsSync(sanityTestDir)) {
     throw new Error(`Invalid test directory: "${sanityTestDir}"`);
   }
 
   // Get test file paths
-  const testFiles = core.getInput('testFilePath', { trimWhitespace: true }) || DEFAULT_TEST_FILE;
+  const testFiles =
+    core.getInput('testFilePath', { trimWhitespace: true }) ||
+    DEFAULT_TEST_FILE;
   if (!testFiles) {
     throw new Error('Test file paths not provided');
   }
 
   // Get Karate version
-  const karateVersion = core.getInput('karateVersion', { trimWhitespace: true }) || DEFAULT_KARATE_VERSION;
+  const karateVersion =
+    core.getInput('karateVersion', { trimWhitespace: true }) ||
+    DEFAULT_KARATE_VERSION;
   if (!karateVersion) {
     throw new Error('Karate version not provided');
   }
@@ -35,7 +40,10 @@ function getInputs() {
   const authToken = core.getInput('authToken', { trimWhitespace: true });
 
   // Create and validate base URL
-  const baseUrlInput = core.getInput('baseUrl', { trimWhitespace: true, required: true });
+  const baseUrlInput = core.getInput('baseUrl', {
+    trimWhitespace: true,
+    required: true,
+  });
   if (!baseUrlInput) {
     throw new Error('Base URL not provided');
   }
@@ -43,10 +51,29 @@ function getInputs() {
 
   // Get Tags
   const tags = core.getInput('tags', { trimWhitespace: true });
-  return { sanityTestDir, testFiles, karateVersion, authToken, baseUrl, tags };
+
+  // Get Properties
+  const properties = core.getInput('properties', { trimWhitespace: true });
+
+  return {
+    sanityTestDir,
+    testFiles,
+    karateVersion,
+    authToken,
+    baseUrl,
+    tags,
+    properties,
+  };
 }
 
-function runKarate(baseUrl, authToken, testFiles, tags, sanityTestDir) {
+function runKarate(
+  baseUrl,
+  authToken,
+  testFiles,
+  tags,
+  properties,
+  sanityTestDir
+) {
   let allPassed = false;
 
   // Escape special characters in tags
@@ -57,9 +84,23 @@ function runKarate(baseUrl, authToken, testFiles, tags, sanityTestDir) {
 
   // Run Karate tests
   const cmd = `java`;
-  const args = [`-DbaseUrl=${baseUrl}`, `-DAuthorization=${authTokenString}`, `-jar`, `${jarPathString}`, `${testFilesString}`];
+  const args = [
+    `-DbaseUrl=${baseUrl}`,
+    `-DAuthorization=${authTokenString}`,
+    `-jar`,
+    `${jarPathString}`,
+    `${testFilesString}`,
+  ];
+  
   if (tags) {
     args.push(`--tags`, `${tagsString}`);
+  }
+
+  if (properties) {
+    const propertiesParsed = JSON.parse(inputs.properties || '{}');
+    Object.entries(propertiesParsed).forEach(([key, value]) => {
+      args.push(`-D${key}=${value}`);
+    });
   }
   core.info(`Running command: ${cmd} ${args.join(' ')}`);
 
@@ -84,7 +125,15 @@ function runKarate(baseUrl, authToken, testFiles, tags, sanityTestDir) {
 async function mainFunction() {
   // Get inputs
   core.info('Getting inputs...');
-  const { sanityTestDir, testFiles, karateVersion, authToken, baseUrl, tags } = getInputs();
+  const {
+    sanityTestDir,
+    testFiles,
+    karateVersion,
+    authToken,
+    baseUrl,
+    tags,
+    properties,
+  } = getInputs();
 
   // Download Karate JAR if it doesn't already exist
   try {
@@ -95,8 +144,17 @@ async function mainFunction() {
   }
 
   // Run Karate tests
-  core.info(`Running Karate tests in "${sanityTestDir}" using version "${karateVersion}"`);
-  let allPassed = runKarate(baseUrl, authToken, testFiles, tags, sanityTestDir);
+  core.info(
+    `Running Karate tests in "${sanityTestDir}" using version "${karateVersion}"`
+  );
+  let allPassed = runKarate(
+    baseUrl,
+    authToken,
+    testFiles,
+    tags,
+    properties,
+    sanityTestDir
+  );
 
   // Generate test summary
   core.info('Generating test summary...');
