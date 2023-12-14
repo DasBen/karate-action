@@ -91,13 +91,13 @@ function runKarate(
     `${jarPathString}`,
     `${testFilesString}`,
   ];
-  
+
   if (tags) {
     args.push(`--tags`, `${tagsString}`);
   }
 
   if (properties) {
-    const propertiesParsed = JSON.parse(inputs.properties || '{}');
+    const propertiesParsed = JSON.parse(properties || '{}');
     Object.entries(propertiesParsed).forEach(([key, value]) => {
       args.push(`-D${key}=${value}`);
     });
