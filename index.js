@@ -97,12 +97,22 @@ function runKarate(
   }
 
   if (properties) {
-    const propertiesParsed = JSON.parse(properties || '{}');
+    const propertiesParsed = JSON.parse(properties);
+
+    // Log keys only
+    const keys = Object.keys(propertiesParsed);
+    core.info(
+      `Running command: ${cmd} ${args.join(' ')} with properties: ${keys.join(
+        ', '
+      )}`
+    );
+
     Object.entries(propertiesParsed).forEach(([key, value]) => {
       args.push(`-D${key}=${value}`);
     });
+  } else {
+    core.info(`Running command: ${cmd} ${args.join(' ')}`);
   }
-  core.info(`Running command: ${cmd} ${args.join(' ')}`);
 
   const options = {
     encoding: 'utf-8',
