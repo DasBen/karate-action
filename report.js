@@ -50,7 +50,7 @@ const generateTestSummary = async (baseDir) => {
     try {
       await fs.access(summaryFilePath);
     } catch (e) {
-      const normalizedPath = path.normalize('baseDir/target/karate-reports/karate-summary-json.txt');
+      const normalizedPath = path.normalize(summaryFilePath);
       core.error(`Summary file ${normalizedPath} does not exist.`);
       return;
     }
