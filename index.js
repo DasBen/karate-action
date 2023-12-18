@@ -84,35 +84,24 @@ function runKarate(
 
   // Run Karate tests
   const cmd = `java`;
-  const args = [
+  const systemProperties = [
     `-DbaseUrl=${baseUrl}`,
     `-DAuthorization=${authTokenString}`,
-    `-jar`,
-    `${jarPathString}`,
-    `${testFilesString}`,
   ];
+  const args = [`-jar`, `${jarPathString}`, `${testFilesString}`];
 
   if (tags) {
-    args.push(`--tags`, `${tagsString}`);
+    args.push(`--tags`, tagsString);
   }
 
   if (properties) {
     const propertiesParsed = JSON.parse(properties);
-
-    // Log keys only
-    const keys = Object.keys(propertiesParsed);
-    core.info(
-      `Running command: ${cmd} ${args.join(' ')} with properties: ${keys.join(
-        ', '
-      )}`
-    );
-
     Object.entries(propertiesParsed).forEach(([key, value]) => {
-      args.push(`-D${key}=${value}`);
+      systemProperties.push(`-D${key}=${value}`);
     });
-  } else {
-    core.info(`Running command: ${cmd} ${args.join(' ')}`);
   }
+
+  core.info(`Running karate tests`);
 
   const options = {
     encoding: 'utf-8',
@@ -120,7 +109,8 @@ function runKarate(
     maxBuffer: 1024 * 1024,
   };
 
-  const result = spawnSync(cmd, args, options);
+  const combinedArgs = systemProperties.concat(args);
+  const result = spawnSync(cmd, combinedArgs, options);
   const output = result.stdout.toString();
   core.info(`Output received: ${output}`);
 
