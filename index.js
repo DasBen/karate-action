@@ -111,7 +111,7 @@ function runKarate(
   process.stdout.write(result.stdout.toString());
 
   // CMD throws Error or Tests are failing
-  if (outputStdOut.includes('failed: 0')) {
+  if (result.stdout.toString().includes('failed: 0')) {
     allPassed = true;
   }
 
