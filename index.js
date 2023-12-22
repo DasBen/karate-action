@@ -115,7 +115,7 @@ function runKarate(
   core.info(`Error received: ${outputStdErr}`);
 
   // CMD throws Error or Tests are failing
-  if (output.includes('failed: 0')) {
+  if (outputStdOut.includes('failed: 0')) {
     allPassed = true;
   }
 
