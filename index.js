@@ -5,7 +5,6 @@ const { spawnSync } = require('child_process');
 const { downloadKarateJar } = require('./utils');
 const { generateTestSummary } = require('./report');
 const path = require('path');
-const shellQuote = require('shell-quote/quote');
 
 const DEFAULT_TEST_DIR = 'sanityTests';
 const DEFAULT_TEST_FILE = 'SanityTest.feature';
@@ -76,22 +75,16 @@ function runKarate(
 ) {
   let allPassed = false;
 
-  // Escape special characters in tags
-  const authTokenString = shellQuote([`${authToken}`]);
-  const jarPathString = shellQuote([`${JAR_PATH}`]);
-  const testFilesString = shellQuote([`${testFiles}`]);
-  const tagsString = shellQuote([`${tags}`]);
-
   // Run Karate tests
   const cmd = `java`;
   const systemProperties = [
     `-DbaseUrl=${baseUrl}`,
-    `-DAuthorization=${authTokenString}`,
+    `-DAuthorization=${authToken}`,
   ];
-  const args = [`-jar`, `${jarPathString}`, `${testFilesString}`];
+  const args = [`-jar`, `${JAR_PATH}`, `${testFiles}`];
 
   if (tags) {
-    args.push(`--tags`, tagsString);
+    args.push(`--tags`, tags);
   }
 
   if (properties) {
@@ -111,11 +104,14 @@ function runKarate(
 
   const combinedArgs = systemProperties.concat(args);
   const result = spawnSync(cmd, combinedArgs, options);
-  const output = result.stdout.toString();
-  core.info(`Output received: ${output}`);
+
+  // Output relevant info
+  core.info(`Exit code: ${result.status}`);
+  process.stderr.write(result.stderr.toString());
+  process.stdout.write(result.stdout.toString());
 
   // CMD throws Error or Tests are failing
-  if (output.includes('failed: 0')) {
+  if (result.stdout.toString().includes('failed: 0')) {
     allPassed = true;
   }
 
