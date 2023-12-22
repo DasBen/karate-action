@@ -112,7 +112,7 @@ function runKarate(
   core.info(`Output received: ${outputStdOut}`);
 
   const outputStdErr = result.stderr.toString();
-  if (outputStdErr.length != 0) throw new Error(outputStdErr);
+  core.info(`Error received: ${outputStdErr}`);
 
   // CMD throws Error or Tests are failing
   if (output.includes('failed: 0')) {
