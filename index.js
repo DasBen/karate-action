@@ -107,12 +107,8 @@ function runKarate(
 
   // Output relevant info
   core.info(`Exit code: ${result.status}`);
-
-  const outputStdOut = result.stdout.toString();
-  core.info(`Output received: ${outputStdOut}`);
-
-  const outputStdErr = result.stderr.toString();
-  if (outputStdErr.length > 0) core.info(`Error received: ${outputStdErr}`);
+  process.stderr.write(result.stderr.toString());
+  process.stdout.write(result.stdout.toString());
 
   // CMD throws Error or Tests are failing
   if (outputStdOut.includes('failed: 0')) {
